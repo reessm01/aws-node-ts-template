@@ -1,0 +1,18 @@
+scalar GraphQLLong
+
+type ExampleInterface {
+    id: String!
+    products: [String]
+}
+
+type Query {
+    getExample(name: String!): String
+}
+
+type Mutation {
+    examplePut(input: exampleInput): String
+}
+
+input exampleInput {
+    exampleKey: String!
+}
