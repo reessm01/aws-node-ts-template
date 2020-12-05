@@ -18,3 +18,4 @@ cdk.out
 .vscode/
 reports/**
 coverage/**
+cdk.context.json
