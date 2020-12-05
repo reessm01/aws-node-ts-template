@@ -11,7 +11,7 @@
 > - Tags can be whatever I used tag key: `admin` tag value: `sys admin`
 > - Be sure to save the .csv otherwise if lost you'll have to create another user
 > - It is against best practices to use your root account for access, so follow these extra steps.
-3. Download AWS CDK: run in terminal `npm i -g aws-cdk` 
+3. [Download AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
 4. Configure CDK login credentials: run in terminal `aws configure`
 5. Follow the prompts & provide your AWS access key ID, secret access key, and default region (us-east-2) when prompted.
 
@@ -31,4 +31,4 @@ Leverage the project's structure for well organized code.
 2. `src/interfaces` for TypeScript interfaces, enums, etc.
 3. `src/lambda` self-explanatory
 4. `deployment/cdk` for AWS specific cdk deployment details
-5. `deployment/cdk/environment.ts`
+5. `deployment/cdk/environment.ts` for environment specific settings
