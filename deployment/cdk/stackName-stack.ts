@@ -1,11 +1,11 @@
 import { Construct, Duration, Stack, StackProps } from '@aws-cdk/core';
-// import { IVpc, Vpc } from '@aws-cdk/aws-ec2';
 import { AssetCode, Function, Runtime } from '@aws-cdk/aws-lambda';
-import { CorsOptions, LambdaIntegration, RestApi } from "@aws-cdk/aws-apigateway";
+import { CorsOptions, LambdaIntegration, RestApi } from '@aws-cdk/aws-apigateway';
+import { Config, environment } from "./environment";
 
 interface BuildLambdaProps {
     functionName: string;
-    handlerFileName: string; // handlerFileName
+    handlerFileName: string;
     stackId: string;
     description: string;
     environment?: { [key: string]: string };
@@ -13,25 +13,19 @@ interface BuildLambdaProps {
 
 export class StackNameStack extends Stack {
     private readonly displayName = 'aws-node-ts-template';
-    // private vpc: IVpc;
+    private readonly env = process.env.environment || 'development';  // add environment specific details specific to however its handled in a ci/cd pipeline
+    private readonly config: Config = (environment as any)[this.env] || environment.development;
     constructor(scope: Construct, stackId: string, props: StackProps) {
         super(scope, stackId, props);
 
-        // const vpcName = process.env.vpc_name as string;
-
-        // this.vpc = Vpc.fromLookup(this, 'VPC', {
-        //     vpcName,
-        // });
-
-        const targetEnv = process.env.environment || 'sandbox';
-
         const exampleFunction = this.buildLambdaFunction({
             description: 'example lambda description',
-            functionName: `example-lambda-${targetEnv}`,
+            functionName: `example-lambda-${this.env}`,
             handlerFileName: 'exampleLambda',
             stackId,
             environment: {
                 exampleProp: 'additionalEnvVariable',
+                exampleUrlProp: this.config.exampleEnvSpecificURL,
             },
         });
         const exampleFunctionIntegration = new LambdaIntegration(exampleFunction);
@@ -42,7 +36,7 @@ export class StackNameStack extends Stack {
 
         const exampleGraphQLFunction = this.buildGraphQLFunction({
             description: 'example lambda description',
-            functionName: `graphql-fn-${targetEnv}`,
+            functionName: `graphql-fn-${this.env}`,
             handlerFileName: '',
             stackId,
             environment: {
@@ -92,8 +86,8 @@ export class StackNameStack extends Stack {
 
     private get commonEnvironmentProperties(): { [key: string]: string } {
         return {
-            LOG_LEVEL: 'debug',
-            ENVIRONMENT: process.env.environment || 'sandbox',
+            LOG_LEVEL: this.config.logLevel,
+            ENVIRONMENT: this.env,
         };
     }
 

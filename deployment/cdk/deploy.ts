@@ -8,6 +8,6 @@ const target = process.env.environment || 'sandbox';
 new StackNameStack(app, `aws-node-ts-template-${target}`, {
     env: {
         region: 'us-east-2',
-        account: process.env.account,
+        // account: process.env.account,
     },
 });
