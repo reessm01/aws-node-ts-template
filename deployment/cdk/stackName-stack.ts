@@ -1,7 +1,7 @@
 import { Construct, Duration, Stack, StackProps } from '@aws-cdk/core';
 import { AssetCode, Function, Runtime } from '@aws-cdk/aws-lambda';
 import { CorsOptions, LambdaIntegration, RestApi } from '@aws-cdk/aws-apigateway';
-import { Config, environment } from "./environment";
+import { Config, environment } from './environment';
 
 interface BuildLambdaProps {
     functionName: string;
@@ -13,7 +13,7 @@ interface BuildLambdaProps {
 
 export class StackNameStack extends Stack {
     private readonly displayName = 'aws-node-ts-template';
-    private readonly env = process.env.environment || 'development';  // add environment specific details specific to however its handled in a ci/cd pipeline
+    private readonly env = process.env.environment || 'development'; // add environment specific details specific to however its handled in a ci/cd pipeline
     private readonly config: Config = (environment as any)[this.env] || environment.development;
     constructor(scope: Construct, stackId: string, props: StackProps) {
         super(scope, stackId, props);
@@ -29,24 +29,15 @@ export class StackNameStack extends Stack {
             },
         });
         const exampleFunctionIntegration = new LambdaIntegration(exampleFunction);
-        const exampleApiConstruct = new RestApi(this, this.displayName, {});
-        const exampleApi = exampleApiConstruct.root;
-        exampleApi.addCorsPreflight(this.corsConfig);
-        exampleApi.addMethod('POST', exampleFunctionIntegration);
 
-        const exampleGraphQLFunction = this.buildGraphQLFunction({
-            description: 'example lambda description',
-            functionName: `graphql-fn-${this.env}`,
-            handlerFileName: '',
-            stackId,
-            environment: {
-                exampleProp: 'additionalEnvVariable',
-            },
-        });
-        const graphQLIntegration = new LambdaIntegration(exampleGraphQLFunction);
-        const graphqlEndpoint = exampleApi.addResource('graphql');
-        graphqlEndpoint.addMethod('POST', graphQLIntegration, {});
-        graphqlEndpoint.addCorsPreflight(this.corsConfig);
+        //  Construct the api service
+        const exampleApiConstruct = new RestApi(this, `${this.displayName}-apigw`, { restApiName: 'api-gateway-example' });
+        exampleApiConstruct.root.addCorsPreflight(this.corsConfig);
+
+        //  Define the api service
+        const exampleEndpointResource = exampleApiConstruct.root.addResource('hello');
+        exampleEndpointResource.addMethod('POST', exampleFunctionIntegration);
+        exampleEndpointResource.addMethod('GET', exampleFunctionIntegration);
     }
 
     private buildLambdaFunction(props: BuildLambdaProps): Function {
@@ -54,19 +45,6 @@ export class StackNameStack extends Stack {
             ...this.commonLambdaProperties,
             functionName: `${this.displayName}-${props.functionName}`,
             handler: `dist/src/lambda/${props.handlerFileName}.handler`,
-            description: props.description,
-            environment: {
-                ...this.commonEnvironmentProperties,
-                ...props.environment,
-            },
-        });
-    }
-
-    private buildGraphQLFunction(props: BuildLambdaProps): Function {
-        return new Function(this, props.functionName, {
-            ...this.commonLambdaProperties,
-            functionName: `${this.displayName}-${props.functionName}`,
-            handler: `dist/src/infrastructure/graphql/apollo-resolvers.graphqlHandler`,
             description: props.description,
             environment: {
                 ...this.commonEnvironmentProperties,
